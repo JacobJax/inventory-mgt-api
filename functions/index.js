@@ -11,7 +11,7 @@
 const {onRequest} = require("firebase-functions/v2/https");
 const express = require("express");
 
-const {addItemValidation, updateItemValidation} = require("./validators/itemsValidator");
+const {addItemValidation, updateItemValidation, moveItemValidation, restockItemValidation} = require("./validators/itemsValidator");
 
 const app = express();
 
@@ -121,5 +121,59 @@ app.route("/:id")
         res.status(500).send(JSON.stringify({"error": error}));
       }
     });
+
+
+// move item
+app.put("/:id/move", async (req, res) => {
+  try {
+    const snapshot = await admin.firestore().collection("inventory").doc(req.params.id).get();
+    // return error if item is not found
+    if (!snapshot.exists) {
+      return res.status(404).send(JSON.stringify({"error": "item not found"}));
+    }
+    const data = snapshot.data();
+
+    // validate user input
+    const {error} = moveItemValidation(req.body);
+    if (error) return res.status(400).json(error.details[0].message);
+
+    const postBody = {
+      "storage_shelf_column_number": req.body.storage_shelf_column_number ? req.body.storage_shelf_column_number : data.storage_shelf_column_number,
+      "storage_shelf_row_number": req.body.storage_shelf_row_number ? req.body.storage_shelf_row_number : data.storage_shelf_row_number,
+    };
+
+    await admin.firestore().collection("inventory").doc(req.params.id).update(postBody);
+
+    res.status(200).send(JSON.stringify({"message": "Item moved successfully"}));
+  } catch (error) {
+    res.status(500).send(JSON.stringify({"error": error}));
+  }
+});
+
+// restock item
+app.put("/:id/restock", async (req, res) => {
+  try {
+    const snapshot = await admin.firestore().collection("inventory").doc(req.params.id).get();
+    // return error if item is not found
+    if (!snapshot.exists) {
+      return res.status(404).send(JSON.stringify({"error": "item not found"}));
+    }
+    const data = snapshot.data();
+
+    // validate user input
+    const {error} = restockItemValidation(req.body);
+    if (error) return res.status(400).json(error.details[0].message);
+
+    const postBody = {
+      "quantity": req.body.quantity + data.quantity,
+    };
+
+    await admin.firestore().collection("inventory").doc(req.params.id).update(postBody);
+
+    res.status(200).send(JSON.stringify({"message": "Item restocked successfully"}));
+  } catch (error) {
+    res.status(500).send(JSON.stringify({"error": error}));
+  }
+});
 
 exports.inventory = onRequest(app);
