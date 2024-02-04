@@ -57,5 +57,31 @@ const updateItemValidation = (data) => {
   return schema.validate(data);
 };
 
+// validate item to move
+const moveItemValidation = (data) => {
+  const schema = Joi.object({
+    storage_shelf_column_number: Joi.number()
+        .required(),
+    storage_shelf_row_number: Joi.number()
+        .required(),
+  });
+
+  // return Joi.validate(data, schema)
+  return schema.validate(data);
+};
+
+// validate item to move
+const restockItemValidation = (data) => {
+  const schema = Joi.object({
+    quantity: Joi.number()
+        .required(),
+  });
+
+  // return Joi.validate(data, schema)
+  return schema.validate(data);
+};
+
 module.exports.addItemValidation = addItemValidation;
 module.exports.updateItemValidation = updateItemValidation;
+module.exports.moveItemValidation = moveItemValidation;
+module.exports.restockItemValidation = restockItemValidation;
