@@ -40,7 +40,7 @@ app.get("/", async (req, res) => {
 });
 
 app.post("/", async (req, res) => {
-  const item = req.body;
+  const item = {...req.body, "created_by": req.user.user_id};
 
   // validate user input
   const {error} = addItemValidation(item);
