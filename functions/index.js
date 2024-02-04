@@ -13,8 +13,11 @@ const express = require("express");
 
 const {addItemValidation, updateItemValidation} = require("./validators/itemsValidator");
 
-
 const app = express();
+
+const authMiddleware = require("./middlewares/authMiddleware");
+app.use(authMiddleware);
+
 const admin = require("firebase-admin");
 admin.initializeApp();
 
